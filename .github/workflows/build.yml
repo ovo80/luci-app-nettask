@@ -43,7 +43,11 @@ jobs:
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}
-          FEEDNAME: luci-app-nettask
+          # The action writes "src-link $FEEDNAME /feed/" into feeds.conf, and
+          # the feeds script only accepts a plain identifier as feed name - a
+          # hyphenated package name makes it fail with "Syntax error in
+          # feeds.conf". PACKAGES keeps the real package name.
+          FEEDNAME: nettask
           PACKAGES: luci-app-nettask
           BUILD_LOG: 1
           # Set INDEX to 1 to have the action generate a package index as well,
