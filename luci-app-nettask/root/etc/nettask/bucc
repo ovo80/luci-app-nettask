@@ -16,7 +16,7 @@ timeout)
 ;;
 released)
 	button=$(uci get nettask.main.button)
-	if [ "$SEEN" -lt 1 ] && [ "$button" -eq 1 ]; then
+	if [ "$SEEN" -lt 1 ] && [ "$button" = "1" ]; then
 	    logger "按下按键，执行脚本"
 	    pgrep -f /etc/nettask/button.sh | xargs kill -9 >/dev/null 2>&1
 	    sh /etc/nettask/button.sh &
@@ -26,7 +26,7 @@ released)
 	    reboot
 	elif [ "$SEEN" -ge 5 ] && [ -n "$OVERLAY" ]; then
 	    echo "FACTORY RESET" > /dev/console
-	    jffs2reset -y && reboot &
+	    factoryreset -y && reboot &
 	fi
 	;;
 esac

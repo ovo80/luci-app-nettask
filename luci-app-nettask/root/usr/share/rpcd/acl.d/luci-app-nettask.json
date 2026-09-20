@@ -1,0 +1,26 @@
+{
+	"luci-app-nettask": {
+		"description": "Grant access to luci-app-nettask (script files plus its privileged helper)",
+		"read": {
+			"ubus": {
+				"file": [ "read", "list" ]
+			},
+			"uci": [ "nettask" ],
+			"file": {
+				"/etc/nettask/*": [ "read", "list" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"file": [ "write", "remove", "exec" ]
+			},
+			"cgi-io": [ "upload" ],
+			"uci": [ "nettask" ],
+			"file": {
+				"/etc/nettask/*": [ "write" ],
+				"/tmp/nettask-upload": [ "write" ],
+				"/usr/libexec/nettask-action": [ "exec" ]
+			}
+		}
+	}
+}

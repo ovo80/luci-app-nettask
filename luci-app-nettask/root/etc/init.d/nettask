@@ -1,0 +1,81 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+NETTASK_DIR=/etc/nettask
+TIMING_MARKER="#nettask-timing"
+
+kill_script() {
+	pgrep -f "$NETTASK_DIR/$1" | xargs kill -9 >/dev/null 2>&1
+}
+
+start_script() {
+	kill_script "$1"
+	sh "$NETTASK_DIR/$1" >/dev/null 2>&1 </dev/null &
+}
+
+# Rebuild the single crontab line that runs the 定时执行 script from uci. Only
+# lines carrying our own marker are touched, so the entries maintained by
+# cron.sh and any task the user added stay in place.
+update_crontab() {
+	[ -f /etc/crontabs/root ] || touch /etc/crontabs/root
+
+	before=$(md5sum /etc/crontabs/root)
+
+	sed -i "/$TIMING_MARKER/d" /etc/crontabs/root
+
+	if [ "$(uci get nettask.main.timi)" = "1" ]; then
+		echo "$(uci get nettask.main.minute) $(uci get nettask.main.shi) $(uci get nettask.main.day) $(uci get nettask.main.month) $(uci get nettask.main.week) sh $NETTASK_DIR/timing.sh & $TIMING_MARKER" \
+			>>/etc/crontabs/root
+	fi
+
+	[ "$before" = "$(md5sum /etc/crontabs/root)" ] || /etc/init.d/cron restart
+}
+
+start() {
+	if [ "$(uci get nettask.main.network)" = "1" ]; then
+		start_script ping.sh
+	else
+		kill_script ping.sh
+	fi
+
+	if [ "$(uci get nettask.main.word)" = "1" ]; then
+		start_script word.sh
+	else
+		kill_script word.sh
+	fi
+
+	update_crontab
+
+	if [ "$(uci get nettask.main.button)" = "1" ]; then
+		# Take over the reset button, but never move the original aside twice:
+		# after the first run /etc/rc.button/reset is our own symlink.
+		if [ ! -L /etc/rc.button/reset ]; then
+			[ -f /etc/rc.button/reset ] && mv -f /etc/rc.button/reset /etc/rc.button/reset_bak
+			ln -sf "$NETTASK_DIR/bucc" /etc/rc.button/reset
+		fi
+
+		uci set nettask.main.open="1"
+		uci commit nettask
+	else
+		[ -f /etc/rc.button/reset_bak ] && mv -f /etc/rc.button/reset_bak /etc/rc.button/reset
+
+		if [ "$(uci get nettask.main.open)" = "1" ]; then
+			uci set nettask.main.open="0"
+			uci commit nettask
+		fi
+	fi
+}
+
+stop() {
+	kill_script ping.sh
+	kill_script word.sh
+
+	# Hand the reset button back to the stock handler.
+	[ -f /etc/rc.button/reset_bak ] && mv -f /etc/rc.button/reset_bak /etc/rc.button/reset
+}
+
+reload() {
+	stop
+	start
+}

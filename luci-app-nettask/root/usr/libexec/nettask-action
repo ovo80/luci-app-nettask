@@ -1,0 +1,162 @@
+#!/bin/sh
+#
+# Privileged helper for luci-app-nettask.
+#
+# The web UI is granted the right to execute this very file only (see
+# /usr/share/rpcd/acl.d/luci-app-nettask.json), so every argument is
+# validated here: a caller may pass a verb plus a script name, but never an
+# arbitrary path and never shell syntax.
+#
+# Verbs:
+#   status <path>    print 1 when the script is running, 0 otherwise
+#   start  <path>    start the script in the background
+#   stop   <path>    kill the processes belonging to the script
+#   test   <path>    run an uploaded script, print its output, time limited
+#   install          adopt /tmp/nettask-upload as filetab/<name>
+#   test             run an uploaded script, print its output, time limited
+#   sync-cron        rewrite /etc/crontabs/root from the uci task list
+#   apply            run /etc/init.d/nettask start
+#
+# <path> is either /etc/nettask/<name> or /etc/nettask/filetab/<name>.
+#
+# "install" and "test" act on a name that the browser cannot pass as an
+# argument: the web UI writes it into REQUEST, a root-only file, and the name
+# is validated here before anything is done with it.
+
+NETTASK_DIR=/etc/nettask
+UPLOAD_DIR=$NETTASK_DIR/filetab
+STAGING=/tmp/nettask-upload
+REQUEST=$NETTASK_DIR/.request
+TEST_TIMEOUT=10
+MAX_OUTPUT=65536
+
+die() {
+	echo "nettask-action: $*" >&2
+	exit 1
+}
+
+# Reject everything that is not a plain file name: no slash (hence no path
+# traversal), no leading dot, no character that is special to the shell.
+valid_name() {
+	case "$1" in
+		''|.|..) return 1 ;;
+		.*) return 1 ;;
+		*[!A-Za-z0-9._-]*) return 1 ;;
+	esac
+	return 0
+}
+
+# Set _dir and _name from a path below NETTASK_DIR, refuse anything else.
+resolve() {
+	case "$1" in
+		"$UPLOAD_DIR"/*) _dir=$UPLOAD_DIR; _name=${1#"$UPLOAD_DIR"/} ;;
+		"$NETTASK_DIR"/*) _dir=$NETTASK_DIR; _name=${1#"$NETTASK_DIR"/} ;;
+		*) return 1 ;;
+	esac
+
+	valid_name "$_name" || return 1
+
+	return 0
+}
+
+is_running() {
+	pgrep -f "$_dir/$_name" >/dev/null 2>&1
+}
+
+# Read the script name written by the web UI and consume the request file, so
+# that a name can never be replayed and only ever comes from this one place.
+read_request() {
+	[ -f "$REQUEST" ] || die "no pending request"
+
+	_name=$(head -n 1 "$REQUEST")
+	rm -f "$REQUEST"
+
+	valid_name "$_name" || die "invalid file name"
+}
+
+# Redirection of all three streams is what keeps the backgrounded script from
+# holding the RPC pipe open, so the caller returns immediately.
+spawn() {
+	if command -v setsid >/dev/null 2>&1; then
+		setsid sh "$1" >/dev/null 2>&1 </dev/null &
+	else
+		sh "$1" >/dev/null 2>&1 </dev/null &
+	fi
+}
+
+case "$1" in
+status)
+	resolve "$2" || die "invalid script path"
+	is_running && echo 1 || echo 0
+	;;
+
+start)
+	resolve "$2" || die "invalid script path"
+	[ -f "$_dir/$_name" ] || die "no such script: $_name"
+	pgrep -f "$_dir/$_name" | xargs kill -9 >/dev/null 2>&1
+	spawn "$_dir/$_name"
+	echo 1
+	;;
+
+stop)
+	resolve "$2" || die "invalid script path"
+	pgrep -f "$_dir/$_name" | xargs kill -9 >/dev/null 2>&1
+	echo 0
+	;;
+
+test)
+	read_request
+	_dir=$UPLOAD_DIR
+	[ -f "$_dir/$_name" ] || die "no such script: $_name"
+
+	out=/tmp/nettask-test.$$
+	sh "$_dir/$_name" >"$out" 2>&1 </dev/null &
+	pid=$!
+
+	# A script may loop forever; give it a bounded amount of time and say so
+	# instead of hanging the web request.
+	i=0
+	while [ "$i" -lt "$TEST_TIMEOUT" ]; do
+		kill -0 "$pid" 2>/dev/null || break
+		sleep 1
+		i=$((i + 1))
+	done
+
+	if kill -0 "$pid" 2>/dev/null; then
+		kill -9 "$pid" >/dev/null 2>&1
+		printf '%s\n' "（脚本超过 ${TEST_TIMEOUT} 秒仍在运行，已终止，其子进程可能仍在后台）"
+	fi
+
+	head -c "$MAX_OUTPUT" "$out"
+	rm -f "$out"
+	;;
+
+install)
+	read_request
+	[ -f "$STAGING" ] || die "no uploaded file"
+
+	mkdir -p "$UPLOAD_DIR"
+
+	# Uploads from a Windows browser are CRLF; a stray CR breaks the scripts,
+	# so normalise before the file is adopted.
+	tr -d '\r' <"$STAGING" >"$STAGING.$$" && mv -f "$STAGING.$$" "$STAGING"
+	mv -f "$STAGING" "$UPLOAD_DIR/$_name"
+	chmod 0755 "$UPLOAD_DIR/$_name"
+
+	echo "$_name"
+	;;
+
+sync-cron)
+	sh "$NETTASK_DIR/cron.sh" || die "cron.sh failed"
+	echo 1
+	;;
+
+apply)
+	/etc/init.d/nettask start || die "init script failed"
+	echo 1
+	;;
+
+*)
+	die "usage: nettask-action {status|start|stop|test|install|sync-cron|apply} [arg]"
+	;;
+esac

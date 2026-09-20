@@ -2,8 +2,11 @@
 
 uid=0
 
-[ -s /etc/crontabs/root ] || flag=1 && touch /etc/crontabs/root
-sed -i '/crontab/d' /etc/crontabs/root
+[ -f /etc/crontabs/root ] || touch /etc/crontabs/root
+
+# Only the lines this script owns are removed; the 定时执行 entry maintained by
+# /etc/init.d/nettask and anything the user added are left untouched.
+sed -i '/#nettask-cron/d' /etc/crontabs/root
 
 while true
 do
@@ -11,8 +14,9 @@ do
 
     if [ -n "$b1" ]; then
         off=$(uci get nettask.@crontab[$uid].type)
-        
-        if [ "$off" = "1" ]; then
+
+        # "default" is the placeholder of the list value, not a real script.
+        if [ "$off" = "1" ] && [ "$b1" != "default" ]; then
 
 	    fen_u=$(uci get nettask.@crontab[$uid].minute)
             shi_u=$(uci get nettask.@crontab[$uid].shi)
@@ -21,7 +25,7 @@ do
             zhou_u=$(uci get nettask.@crontab[$uid].week)
             shellname=$(uci get nettask.@crontab[$uid].shellname)
 
-            echo "${fen_u} ${shi_u} ${ri_u} ${yue_u} ${zhou_u} sh /etc/nettask/filetab/$shellname & #crontab" >> /etc/crontabs/root
+            echo "${fen_u} ${shi_u} ${ri_u} ${yue_u} ${zhou_u} sh /etc/nettask/filetab/$shellname & #nettask-cron" >> /etc/crontabs/root
         fi
     else
         break
@@ -29,3 +33,5 @@ do
 
     uid=$((uid + 1))
 done
+
+/etc/init.d/cron restart

@@ -1,0 +1,30 @@
+{
+	"admin/system/nettask": {
+		"title": "自定义脚本",
+		"order": 90,
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "luci-app-nettask" ]
+		}
+	},
+
+	"admin/system/nettask/basic": {
+		"title": "基本功能",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "nettask/basic"
+		}
+	},
+
+	"admin/system/nettask/advanced": {
+		"title": "高级功能",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "nettask/advanced"
+		}
+	}
+}
