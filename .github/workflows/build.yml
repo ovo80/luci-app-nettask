@@ -1,0 +1,63 @@
+name: Build package
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # luci-app-nettask is PKGARCH:=all, so the SDK produces a "noarch"
+        # package that installs on every target. One SDK is therefore enough;
+        # add further entries here only if the package ever becomes arch
+        # dependent. The tag is <arch>-<openwrt release>, see
+        # https://hub.docker.com/r/openwrt/sdk/tags
+        arch:
+          - x86_64-25.12.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The Makefile asks for luci-base/host, which is where po2lmo (used to
+      # compile the English translation) comes from. That host build is only
+      # available when the luci feed is part of the tree, as it is in a normal
+      # OpenWrt checkout and in the official SDK images. If this step ever fails
+      # with "No rule to make target ... luci-base/host/compile", the feed is
+      # missing and the two po2lmo lines in the Makefile have to be made
+      # optional instead.
+      - name: Build with the OpenWrt SDK
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: ${{ matrix.arch }}
+          FEEDNAME: luci-app-nettask
+          PACKAGES: luci-app-nettask
+          BUILD_LOG: 1
+          # Set INDEX to 1 to have the action generate a package index as well,
+          # which is what you need when serving the artifact as a feed:
+          # INDEX: 1
+          # A feed only counts as trusted on the device when it is signed; add
+          # the apk private key as a repository secret to do that:
+          # PRIVATE_KEY: ${{ secrets.APK_PRIVATE_KEY }}
+
+      - name: List built packages
+        run: find bin/packages -name '*.apk' -printf '%p  %s bytes\n' | sort
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-nettask-${{ matrix.arch }}
+          if-no-files-found: error
+          path: |
+            bin/packages/**/*.apk
+            logs/
