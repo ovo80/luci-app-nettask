@@ -1,0 +1,280 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-nettask\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-09-20 00:00+0000\n"
+"Last-Translator: ovo80 <lkl80@outlook.com>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "立刻执行"
+msgstr "Run now"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "单击下方按钮即可立即运行/停止脚本，支持死循环，但是需要避免空操作，以免造成资源浪费！！"
+msgstr "Press the button below to run or stop the script right away. Endless loops are allowed, but avoid no-op iterations so that no resources are wasted."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "启动时执行"
+msgstr "Run at boot"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "此脚本在系统启动时自动执行（可选）"
+msgstr "This script runs automatically during system startup (optional)."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "按下按钮时执行"
+msgstr "Run on button press"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "当前插件会覆盖默认按钮事件，短按按钮执行此脚本（注意：轻按一下快速松开即可，不要超过1秒，否则会重启路由器，超过五秒会重置路由器！！）"
+msgstr "This plugin takes over the default button action, so a short press runs this script. Tap and release quickly: holding the button for more than 1 second reboots the router and holding it for more than 5 seconds resets it."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "断网时执行"
+msgstr "Run on network loss"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "此脚本在网络断开时执行（可选），此脚本应该注意避免死循环，否则可能会反复创建进程"
+msgstr "This script runs when the network goes down (optional). Avoid endless loops here, otherwise processes may pile up."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "定时执行"
+msgstr "Run on a schedule"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "此脚本在规定时间内执行（可选），此脚本应该注意避免死循环，否则可能会反复创建进程"
+msgstr "This script runs at the configured time (optional). Avoid endless loops here, otherwise processes may pile up."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "温馨提示：#号后面的内容为注释，如果对脚本进行了修改（或首次编辑），请先保存后再运行"
+msgstr "Note: everything after a # is a comment. If you changed the script (or edited it for the first time), save it before running."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "温馨提示：保存后此脚本会立即运行一次，而后只会在系统启动初始化阶段运行"
+msgstr "Note: after saving, this script runs once immediately and afterwards only during system startup."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "这是一个由用户自由编写 shell 脚本的界面工具，支持立即执行、开机执行、定时执行、断网执行和按下物理按键时执行。"
+msgstr "This is a web interface for writing and running your own shell scripts: on demand, at boot, on a schedule, on network loss and on a physical button press."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "启用脚本"
+msgstr "Enable script"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "取消时将停用该脚本"
+msgstr "Clear this to disable the script"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "时间间隔(秒)"
+msgstr "Interval (seconds)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "您希望多久检测一次网络状态？提示：此值应为 >= 1 的整数"
+msgstr "How often should the network state be checked? This must be an integer >= 1."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "分（0~59）"
+msgstr "Minute (0-59)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "时（0~23）"
+msgstr "Hour (0-23)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "日（1~31）"
+msgstr "Day (1-31)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "月（1~12）"
+msgstr "Month (1-12)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "周（1~7）"
+msgstr "Day of week (1-7)"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "在以上输入框中，您可以输入指定时间来定时运行脚本。如果不想指定特定值，可以使用 \"*\" 表示\"任何数\"。<br><br>例如：周的值为 \"*\" 表示每周的每天都会执行；\"1,2,3\" 表示周一、周二和周三；\"1-3\" 表示从周一到周三；\"*/30\" 表示每小时的 0 分和 30 分。<br><br>请注意，只有当每个时间条件都满足时，脚本才会执行，并请使用英文输入法输入所有符号。"
+msgstr "In the fields above you can enter the time at which the script should run. Use \"*\" for \"any value\". For example, a day of week value of \"*\" runs the script every day, \"1,2,3\" means Monday, Tuesday and Wednesday, \"1-3\" means Monday through Wednesday and \"*/30\" runs at minute 0 and 30 of every hour.<br><br>Note that the script only runs when every time condition matches, and that all symbols have to be typed with an English input method."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "单击下方按钮即可立即运行/停止脚本"
+msgstr "Press the button below to run or stop the script right away"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "停止脚本"
+msgstr "Stop script"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "执行脚本"
+msgstr "Run script"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "脚本已在后台运行。"
+msgstr "The script is now running in the background."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "脚本已停止。"
+msgstr "The script has been stopped."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "操作失败：%s"
+msgstr "Operation failed: %s"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "操作失败，退出码 %d"
+msgstr "Operation failed with exit code %d"
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "配置已保存，脚本服务已重新启动。"
+msgstr "The configuration has been saved and the script service restarted."
+
+#: htdocs/luci-static/resources/view/nettask/basic.js
+msgid "保存失败：%s"
+msgstr "Save failed: %s"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "上传脚本"
+msgstr "Upload scripts"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "支持上传多个脚本以及多个计划任务，在本地编辑后直接上传即可运行，使用此功能时应该避免脚本进入死循环，否则可能引起严重问题。"
+msgstr "You can upload several scripts and set up several scheduled tasks. Edit them locally, then upload and run them directly. Avoid endless loops here, otherwise serious problems may occur."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "上传脚本文件"
+msgstr "Upload a script file"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "计划任务列表"
+msgstr "Scheduled tasks"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "在这里为已上传的脚本安排执行时间，保存后会重建 /etc/crontabs/root 中的相关条目。"
+msgstr "Schedule the uploaded scripts here. Saving rebuilds the matching entries in /etc/crontabs/root."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "计划任务"
+msgstr "Scheduled task"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "脚本名称"
+msgstr "Script"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "-- 请选择 --"
+msgstr "-- Please select --"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "启用/停用"
+msgstr "Enable / disable"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "停用"
+msgstr "Disabled"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "启用"
+msgstr "Enabled"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "文件名"
+msgstr "File name"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "大小"
+msgstr "Size"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "修改时间"
+msgstr "Modified"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "权限"
+msgstr "Mode"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "操作"
+msgstr "Actions"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "还没有上传任何脚本。"
+msgstr "No scripts have been uploaded yet."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "试运行"
+msgstr "Test run"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "移除"
+msgstr "Remove"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "脚本 %s 已上传。"
+msgstr "Script %s has been uploaded."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "上传失败：%s"
+msgstr "Upload failed: %s"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "%s 的试运行结果"
+msgstr "Test run result of %s"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "（脚本没有任何输出）"
+msgstr "(the script produced no output)"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "关闭"
+msgstr "Close"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "试运行失败：%s"
+msgstr "Test run failed: %s"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "该文件已不存在。"
+msgstr "That file no longer exists."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "移除脚本"
+msgstr "Remove script"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "确定要移除 %s 吗？"
+msgstr "Remove %s?"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "取消"
+msgstr "Cancel"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "已移除 %s。"
+msgstr "%s has been removed."
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "移除失败：%s"
+msgstr "Removal failed: %s"
+
+#: htdocs/luci-static/resources/view/nettask/advanced.js
+msgid "计划任务已保存并同步到 /etc/crontabs/root。"
+msgstr "The schedule has been saved and synced to /etc/crontabs/root."
+
+#: root/usr/share/luci/menu.d/luci-app-nettask.json
+msgid "自定义脚本"
+msgstr "Custom Scripts"
+
+#: root/usr/share/luci/menu.d/luci-app-nettask.json
+msgid "基本功能"
+msgstr "Basic"
+
+#: root/usr/share/luci/menu.d/luci-app-nettask.json
+msgid "高级功能"
+msgstr "Advanced"

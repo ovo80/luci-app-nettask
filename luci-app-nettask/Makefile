@@ -7,6 +7,9 @@ PKG_RELEASE:=1
 PKG_MAINTAINER:=ovo80 <lkl80@outlook.com>
 PKG_URL:=https://github.com/ovo80/luci-app-nettask
 
+# po2lmo comes from luci-base's host build.
+PKG_BUILD_DEPENDS:=luci-base/host
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/luci-app-nettask
@@ -84,6 +87,12 @@ define Package/luci-app-nettask/install
 
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-nettask.json $(1)/usr/share/rpcd/acl.d/
+
+	# The strings in the sources are Chinese, so the English catalog has to be
+	# compiled here: luci.mk skips po/en because English is upstream's source
+	# language, and the dispatcher loads every *.<lang>.lmo it finds.
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo $(CURDIR)/po/en/nettask.po $(1)/usr/lib/lua/luci/i18n/nettask.en.lmo
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./root/etc/config/nettask $(1)/etc/config/nettask
