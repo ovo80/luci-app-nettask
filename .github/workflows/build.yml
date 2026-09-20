@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: ${{ matrix.arch }}
@@ -53,7 +56,7 @@ jobs:
       - name: List built packages
         run: find bin/packages -name '*.apk' -printf '%p  %s bytes\n' | sort
 
-      - name: Upload package
+      - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-nettask-${{ matrix.arch }}
@@ -61,3 +64,27 @@ jobs:
           path: |
             bin/packages/**/*.apk
             logs/
+
+      # Artifacts need a login and expire, so a tag also publishes a release,
+      # which is what the download link should point at.
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+
+          apks=$(find bin/packages -name '*.apk')
+          if [ -z "$apks" ]; then
+            echo "::error::the build produced no package"
+            exit 1
+          fi
+
+          sha256sum $apks > SHA256SUMS
+
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
+              --notes "OpenWrt 25.12 build of luci-app-nettask. The package is noarch, so it fits every target, and it is unsigned: install it with 'apk add --allow-untrusted ./luci-app-nettask-<version>.apk'."
+          fi
+
+          gh release upload "$GITHUB_REF_NAME" $apks SHA256SUMS --clobber
