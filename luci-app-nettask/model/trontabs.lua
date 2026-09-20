@@ -1,7 +1,17 @@
-local n = require "luci.fs"
+local fs = require "nixio.fs"
+local nutil = require "nixio.util"
 local t = luci.http
 local wa = require "luci.tools.webadmin"
-local fs = require "nixio.fs"
+
+-- nixio.fs.glob yields an iterator, so consume it into an array
+local function glob(pattern)
+	return nutil.consume(fs.glob(pattern))
+end
+
+-- file names arrive from the browser, so quote them before shell use
+local function quote(path)
+	return "'" .. tostring(path or ""):gsub("'", "'\\''") .. "'"
+end
 
 m = Map("nettask",
 	translate("多自定义任务管理"),
@@ -42,8 +52,8 @@ t.setfilehandler(function(t, o, i)
         e:close()
         e = nil
         um.value = "脚本文件已上传到" .. '"/etc/nettask/filetab/' .. t.file .. '"'
-	luci.sys.exec('chmod +x "/etc/nettask/filetab/' .. t.file .. '"')
-	luci.sys.exec("find /etc/nettask/filetab -type f -name ' .. t.file .. ' -exec sed -i 's/\r$//' {} +")
+		luci.sys.exec("sed -i 's/\r$//' " .. quote("/etc/nettask/filetab/" .. t.file))
+		luci.sys.exec("chmod +x " .. quote("/etc/nettask/filetab/" .. t.file))
     end
 end)
 
@@ -95,7 +105,6 @@ routetype.rmempty = true
 
 local a, e
 
-local n = require "luci.fs"
 a = "/etc/nettask/filetab/"
 nixio.fs.mkdir(a)
 
@@ -110,11 +119,11 @@ local function i(e)
 end
 
 local e, a = {}
-for t, o in ipairs(n.glob("/etc/nettask/filetab/*")) do
-    a = n.stat(o)
+for t, o in ipairs(glob("/etc/nettask/filetab/*")) do
+    a = fs.stat(o)
     if a then
         e[t] = {}
-        e[t].name = n.basename(o)
+        e[t].name = fs.basename(o)
         e[t].mtime = os.date("%Y-%m-%d %H:%M:%S", a.mtime)
         e[t].modestr = a.modestr
         e[t].size = i(a.size)
@@ -135,7 +144,7 @@ btnrm.render = function(e, a, t)
 end
 
 btnrm.write = function(a, t)
-    local a = luci.fs.unlink("/etc/nettask/filetab/" .. luci.fs.basename(e[t].name))
+    local a = fs.unlink("/etc/nettask/filetab/" .. fs.basename(e[t].name))
     if a then
         table.remove(e, t)
     end
@@ -163,8 +172,8 @@ btnis.render = function(o, a, t)
 end
 
 btnis.write = function(a, t)
-    luci.sys.exec('pgrep -f /etc/nettask/%s | xargs kill -9 >/dev/null 2>&1', e[t].name)
-    local e = luci.sys.exec(string.format('sh /etc/nettask/filetab/%s', e[t].name))
+    luci.sys.exec("pgrep -f " .. quote("/etc/nettask/" .. e[t].name) .. " | xargs kill -9 >/dev/null 2>&1")
+    local e = luci.sys.exec("sh " .. quote("/etc/nettask/filetab/" .. e[t].name))
     tb.description = string.format('<span style="color: red">%s</span>', e)
 end
 

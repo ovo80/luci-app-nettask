@@ -1,0 +1,4 @@
+# The package is built and runs on Linux: keep LF in the working tree on
+# every platform so Makefiles, init scripts and shell scripts cannot pick
+# up trailing CRs when the tree is copied into an OpenWrt buildroot.
+* text=auto eol=lf
