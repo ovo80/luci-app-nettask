@@ -59,8 +59,16 @@ resolve() {
 	return 0
 }
 
-is_running() {
-	pgrep -f "$_dir/$_name" >/dev/null 2>&1
+# The scripts are always launched as "sh <path>". Matching on the bare path
+# would also match this helper itself, whose own command line contains that
+# path: status then reported "running" forever and start/stop killed themselves
+# instead of the script. Anchor the pattern to the way scripts are started.
+script_running() {
+	pgrep -f "^sh $_dir/$_name\$" >/dev/null 2>&1
+}
+
+kill_script() {
+	pgrep -f "^sh $_dir/$_name\$" | xargs kill -9 >/dev/null 2>&1
 }
 
 # Read the script name written by the web UI and consume the request file, so
@@ -87,20 +95,20 @@ spawn() {
 case "$1" in
 status)
 	resolve "$2" || die "invalid script path"
-	is_running && echo 1 || echo 0
+	script_running && echo 1 || echo 0
 	;;
 
 start)
 	resolve "$2" || die "invalid script path"
 	[ -f "$_dir/$_name" ] || die "no such script: $_name"
-	pgrep -f "$_dir/$_name" | xargs kill -9 >/dev/null 2>&1
+	kill_script
 	spawn "$_dir/$_name"
 	echo 1
 	;;
 
 stop)
 	resolve "$2" || die "invalid script path"
-	pgrep -f "$_dir/$_name" | xargs kill -9 >/dev/null 2>&1
+	kill_script
 	echo 0
 	;;
 
